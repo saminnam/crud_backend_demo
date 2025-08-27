@@ -1,54 +1,44 @@
-const express = require("express");
-const cors = require("cors");
-const mysql = require("mysql2");
-const app = express();
-app.use(express.json());
+require("dotenv").config();
+const { Pool } = require("pg");
 
-// DB connection
-const db = mysql.createConnection({
-  host: "dpg-d2necg24d50c73e99mdg-a",
-  user: "crud_data_8n2j_user",
-  password: "",
-  database: "crud_data_8n2j",
-  port: 5432
+const db = new Pool({
+  host: process.env.DB_HOST || "dpg-d2necg24d50c73e99mdg-a",
+  user: process.env.DB_USER || "crud_data_8n2j_user",
+  password: process.env.DB_PASSWORD || "sP5ttjyWDcObQPDhbv34atHakub2IFTW",
+  database: process.env.DB_NAME || "crud_data_8n2j",
+  port: process.env.DB_PORT || 5432,
+  ssl: { rejectUnauthorized: false } // 🔑 Required by Render Postgres
 });
 
-app.use(cors({
-  origin: "https://crud-demo-front.netlify.app/", // your Netlify domain
-  methods: "GET,POST,PUT,DELETE",
-  credentials: true
-}));
+db.connect()
+  .then(() => console.log("✅ DB connected"))
+  .catch(err => console.error("❌ DB connection error:", err));
 
 
-db.connect((err) => {
-  if (err) console.error("DB connection error:", err);
-  else console.log("DB connected");
-});
-
-// ✅ Get all services
-app.get("/api/services", (req, res) => {
-  db.query("SELECT * FROM services", (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
+  // ✅ Get all services
+app.get("/api/services", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM services");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ✅ Add a new service
-app.post("/api/services", (req, res) => {
+app.post("/api/services", async (req, res) => {
   const { title, description } = req.body;
   if (!title || !description) {
     return res.status(400).json({ error: "All fields required" });
   }
 
-  db.query(
-    "INSERT INTO services (title, description) VALUES (?, ?)",
-    [title, description],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({ id: result.insertId, title, description });
-    }
-  );
+  try {
+    const result = await db.query(
+      "INSERT INTO services (title, description) VALUES ($1, $2) RETURNING *",
+      [title, description]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
