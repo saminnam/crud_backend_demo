@@ -7,10 +7,11 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "https://crud-demo-front.netlify.app", // ✅ your Netlify frontend URL
-  methods: "GET,POST,PUT,DELETE",
+  origin: "https://crud-demo-front.netlify.app", // your Netlify frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 app.use(express.json());
 
 // PostgreSQL connection pool
