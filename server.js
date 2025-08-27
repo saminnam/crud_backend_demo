@@ -2,8 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
 const app = express();
-
-app.use(cors());
 app.use(express.json());
 
 // DB connection
@@ -14,6 +12,13 @@ const db = mysql.createConnection({
   database: "crud_data",
   port: 3306
 });
+
+app.use(cors({
+  origin: "https://crud-demo-front.netlify.app/", // your Netlify domain
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
+}));
+
 
 db.connect((err) => {
   if (err) console.error("DB connection error:", err);
