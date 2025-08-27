@@ -8,7 +8,7 @@ const app = express();
 // ✅ Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://crud-demo-front.netlify.app", // Netlify frontend
+    origin: "https://crud-demo-front.netlify.app", // Netlify frontend
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -18,7 +18,8 @@ app.use(express.json());
 
 // ✅ PostgreSQL connection pool (Neon DB)
 const db = new Pool({
-  connectionString: process.env.DATABASE_URL, // Neon provides this full URL
+  connectionString:
+    "postgresql://neondb_owner:npg_Sf9nJvGBXD4O@ep-spring-wildflower-aetxakm6-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require", // Neon provides this full URL
   ssl: {
     rejectUnauthorized: false, // required for Neon
   },
