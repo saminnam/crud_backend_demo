@@ -5,34 +5,34 @@ const { Pool } = require("pg");
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: "https://crud-demo-front.netlify.app", // your Netlify frontend
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+// ✅ Middleware
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "https://crud-demo-front.netlify.app", // Netlify frontend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
-// PostgreSQL connection pool
+// ✅ PostgreSQL connection pool (Neon DB)
 const db = new Pool({
-  host: process.env.DB_HOST || "dpg-d2necg24d50c73e99mdg-a",
-  user: process.env.DB_USER || "crud_data_8n2j_user",
-  password: process.env.DB_PASSWORD || "sP5ttjyWDcObQPDhbv34atHakub2IFTW",
-  database: process.env.DB_NAME || "crud_data_8n2j",
-  port: process.env.DB_PORT || 5432,
-  ssl: { rejectUnauthorized: false } // 🔑 Required by Render Postgres
+  connectionString: process.env.DATABASE_URL, // Neon provides this full URL
+  ssl: {
+    rejectUnauthorized: false, // required for Neon
+  },
 });
 
 // ✅ Test DB connection on startup
 db.query("SELECT NOW()")
-  .then(res => console.log("✅ DB connected at:", res.rows[0].now))
-  .catch(err => console.error("❌ DB connection error:", err));
+  .then((res) => console.log("✅ DB connected at:", res.rows[0].now))
+  .catch((err) => console.error("❌ DB connection error:", err));
 
 // ✅ Get all services
 app.get("/api/services", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM services");
+    const result = await db.query("SELECT * FROM services ORDER BY id DESC");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
