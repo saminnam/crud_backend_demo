@@ -1,5 +1,11 @@
 require("dotenv").config();
+const express = require("express");
 const { Pool } = require("pg");
+
+const app = express(); // make sure app is created before using app.get/app.post
+
+app.use(cors());
+app.use(express.json());
 
 const db = new Pool({
   host: process.env.DB_HOST || "dpg-d2necg24d50c73e99mdg-a",
