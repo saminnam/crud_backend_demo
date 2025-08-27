@@ -1,12 +1,19 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const { Pool } = require("pg");
 
-const app = express(); // make sure app is created before using app.get/app.post
+const app = express();
 
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: "https://crud-demo-front.netlify.app", // ✅ your Netlify frontend URL
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
+}));
 app.use(express.json());
 
+// PostgreSQL connection pool
 const db = new Pool({
   host: process.env.DB_HOST || "dpg-d2necg24d50c73e99mdg-a",
   user: process.env.DB_USER || "crud_data_8n2j_user",
@@ -16,12 +23,12 @@ const db = new Pool({
   ssl: { rejectUnauthorized: false } // 🔑 Required by Render Postgres
 });
 
-db.connect()
-  .then(() => console.log("✅ DB connected"))
+// ✅ Test DB connection on startup
+db.query("SELECT NOW()")
+  .then(res => console.log("✅ DB connected at:", res.rows[0].now))
   .catch(err => console.error("❌ DB connection error:", err));
 
-
-  // ✅ Get all services
+// ✅ Get all services
 app.get("/api/services", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM services");
@@ -48,3 +55,7 @@ app.post("/api/services", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ✅ Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
